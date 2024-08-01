@@ -74,11 +74,12 @@ def build_samples_zip(problems, output, statement_language):
         outputdir = Path(problem.label)
 
         attachments_dir = problem.path / 'attachments'
-        if (problem.interactive or problem.multipass) and not attachments_dir.is_dir():
+        if (problem.interactive or problem.multipass or problem.scoring) and not attachments_dir.is_dir():
             interactive = 'interactive ' if problem.interactive else ''
             multipass = 'multi-pass ' if problem.multipass else ''
+            scoring = 'scoring ' if problem.scoring else '' 
             util.error(
-                f'{interactive}{multipass}problem {problem.name} does not have an attachments/ directory.'
+                f'{interactive}{multipass}{scoring}problem {problem.name} does not have an attachments/ directory.'
             )
             continue
 

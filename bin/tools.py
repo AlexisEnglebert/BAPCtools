@@ -365,7 +365,10 @@ Run this from one of:
             'custom',
             'custom interactive',
             'custom multi-pass',
+            'custom scoring',
             'custom interactive multi-pass',
+            'custom interactive scoring',
+            'custom interactive multi-pass scoring',
         ],
     )
     problemparser.add_argument('--skel', help='Skeleton problem directory to copy from.')

@@ -163,6 +163,8 @@ def new_problem():
                 validation += ' interactive'
             if _ask_variable_bool('multi-pass', False):
                 validation += ' multi-pass'
+            if _ask_variable_bool('scoring', False):
+                validation += ' scoring'
 
     # Read settings from the contest-level yaml file.
     variables = contest.contest_yaml()

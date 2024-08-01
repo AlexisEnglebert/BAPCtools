@@ -634,17 +634,22 @@ def parse_validation(mode):
     if mode == 'default':
         return {
             'mode': 'default',
-            'interactive': False,
-            'multi-pass': False,
+            'interactive'   : False,
+            'multi-pass'    : False,
+            'scoring'       : False,
         }
     else:
         res = {
-            'mode': 'custom',
-            'interactive': 'interactive' in mode,
-            'multi-pass': 'multi-pass' in mode,
+            'mode'          : 'custom',
+            'interactive'   : 'interactive' in mode,
+            'multi-pass'    : 'multi-pass'  in mode,
+            'scoring'       : 'scoring'     in mode,
         }
+
         temp = mode.replace(' interactive', '', 1)
         temp = temp.replace(' multi-pass', '', 1)
+        temp = temp.replace(' scoring', '', 1)
+
         if temp != 'custom':
             fatal(f'Unrecognised validation mode {mode}.')
         return res

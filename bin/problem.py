@@ -165,6 +165,7 @@ class Problem:
         mode = parse_validation(self.settings.validation)
         self.interactive = mode['interactive']
         self.multipass = mode['multi-pass']
+        self.scoring = mode['scoring']
 
         if isinstance(self.settings.validator_flags, str):
             self.settings.validator_flags = shlex.split(self.settings.validator_flags)
@@ -216,7 +217,10 @@ class Problem:
                                             f'Unknown input validator {name}; expected {input_validator_names}',
                                             print_item=False,
                                         )
-                            case 'grading' | 'run_samples':
+                            case 'grading':
+                                if not instance(flags[k], (dict)):  
+                                    bar.error("grading flag must be a map", resume=True, print_item=False)
+                            case 'run_samples':
                                 bar.warn(f'{k} not implemented in BAPCtools', print_item=False)
                             case _:
                                 path = f.relative_to(p.path / 'data')
@@ -236,7 +240,6 @@ class Problem:
         ---------
         path: absolute path (a file or a directory)
         key: The testdata.yaml key to look for, either of 'input_validator_flags', 'output_validator_flags', or 'grading'.
-            'grading' is not implemented
         name: If key == 'input_validator_flags', optionally the name of the input validator
 
         Returns:
@@ -244,7 +247,7 @@ class Problem:
         string or None if no testdata.yaml is found.
         TODO: when 'grading' is supported, it also can return dict
         """
-        if key not in ['input_validator_flags', 'output_validator_flags']:
+        if key not in ['input_validator_flags', 'output_validator_flags', 'grading']:
             raise NotImplementedError(key)
         if key != 'input_validator_flags' and name is not None:
             raise ValueError(
@@ -772,13 +775,15 @@ class Problem:
             constraints = {}
         assert constraints is None or isinstance(constraints, dict)
 
-        if (problem.interactive or problem.multipass) and mode == validate.Mode.ANSWER:
+        if (problem.interactive or problem.multipass or problem.scoring) and mode == validate.Mode.ANSWER:
             if (problem.path / 'answer_validators').exists():
                 msg = ''
                 if problem.interactive:
                     msg += ' interactive'
                 if problem.multipass:
                     msg += ' multi-pass'
+                if problem.scoring:
+                    msh += ' scoring'
                 log(f'Not running answer_validators for{msg} problems.')
             return True
 
