@@ -21,6 +21,7 @@ class Verdict(Enum):
     RUNTIME_ERROR = 4
     VALIDATOR_CRASH = 5
     COMPILER_ERROR = 6
+    PARTIALLY_ACCEPTED = 7
 
     def __str__(self):
         return {
@@ -30,6 +31,7 @@ class Verdict(Enum):
             Verdict.RUNTIME_ERROR: 'RUNTIME ERROR',
             Verdict.VALIDATOR_CRASH: 'VALIDATOR CRASH',
             Verdict.COMPILER_ERROR: 'COMPILER ERROR',
+            Verdict.PARTIALLY_ACCEPTED :'PARTIALLY ACCEPTED'
         }[self]
 
     def short(self):
@@ -40,6 +42,7 @@ class Verdict(Enum):
             Verdict.RUNTIME_ERROR: 'RTE',
             Verdict.VALIDATOR_CRASH: 'VC',
             Verdict.COMPILER_ERROR: 'CE',
+            Verdict.PARTIALLY_ACCEPTED: 'PA',
         }[self]
 
     def color(self):
@@ -50,6 +53,7 @@ class Verdict(Enum):
             Verdict.RUNTIME_ERROR: Fore.YELLOW,
             Verdict.VALIDATOR_CRASH: Fore.RED,
             Verdict.COMPILER_ERROR: Fore.RED,
+            Verdict.PARTIALLY_ACCEPTED: Fore.CYAN,
         }[self]
 
 
@@ -91,6 +95,8 @@ def from_string(s: str) -> Verdict:
             return Verdict.WRONG_ANSWER
         case 'COMPILER-ERROR':
             return Verdict.COMPILER_ERROR
+        case 'PARTIALLY-ACCEPTED' | 'PARTIALLY_ACCEPTED' | 'PA':
+            return Verdict.PARTIALLY_ACCEPTED
         case 'CHECK-MANUALLY':
             raise NotImplementedError
         case _:
@@ -111,6 +117,8 @@ def from_string_domjudge(s: str) -> Verdict:
             return Verdict.WRONG_ANSWER
         case 'COMPILER-ERROR':
             return Verdict.COMPILER_ERROR
+        case 'PARTIALLY-ACCEPTED': # Need to be implemented in domjudge
+            return Verdict.PARTIALLY_ACCEPTED
         case 'CHECK-MANUALLY':
             raise NotImplementedError
         case _:

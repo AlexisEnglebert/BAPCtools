@@ -17,6 +17,7 @@ VERDICTS = [
     Verdict.TIME_LIMIT_EXCEEDED,
     Verdict.RUNTIME_ERROR,
     Verdict.COMPILER_ERROR,
+    Verdict.PARTIALLY_ACCEPTED
 ]
 
 SUBMISSION_DIRS = [
@@ -24,6 +25,7 @@ SUBMISSION_DIRS = [
     'wrong_answer',
     'time_limit_exceeded',
     'run_time_error',
+    'partially_accepted',
 ]
 
 KNOWN_LICENSES = [
