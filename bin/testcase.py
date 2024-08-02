@@ -171,15 +171,7 @@ class Testcase:
 
         return d
 
-    def validate_format(
-        self,
-        mode: Mode,
-        *,
-        bar,
-        constraints=None,
-        warn_instead_of_error=False,
-        args=None,
-    ) -> bool:
+    def validate_format(self, mode: Mode, *, bar, constraints=None, warn_instead_of_error=False, args=None) -> bool:
         check_constraints = constraints is not None
 
         match mode:
@@ -304,18 +296,12 @@ class Testcase:
                     assert self.out_path is not None
                     file = self.out_path
 
-                data += (
-                    f'{Style.RESET_ALL}-> {shorten_path(self.problem, file.parent) / file.name}\n'
-                )
+                data += f'{Style.RESET_ALL}-> {shorten_path(self.problem, file.parent) / file.name}\n'
             else:
                 data = ret.err
 
             if expect_rejection:
-                bar.debug(
-                    message,
-                    data=data,
-                    color=Fore.GREEN if ret.status == ExecStatus.REJECTED else Fore.YELLOW,
-                )
+                bar.debug(message, data=data, color=Fore.GREEN if ret.status == ExecStatus.REJECTED else Fore.YELLOW,)
             elif ret.status == ExecStatus.ERROR and ret.returncode == 0:
                 bar.part_done(
                     False,

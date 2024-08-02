@@ -164,7 +164,7 @@ class Verdicts:
         run_until: RunUntil = RunUntil.FIRST_ERROR,
     ):
         testcases: set[str] = set(t.name for t in testcases_list)
-        testgroups: set[str] = set(str(path) for tc in testcases for path in Path(tc).parents)
+        self.testgroups: set[str] = set(str(path) for tc in testcases for path in Path(tc).parents)
 
         # Lock operations reading/writing non-static data.
         # Private methods assume the lock is already locked when entering a public method.
@@ -175,14 +175,14 @@ class Verdicts:
 
         # (testcase | testgroup) -> Verdict | None | Literal[False]
         self.verdict: dict[str, Verdict | None | Literal[False]] = {
-            g: None for g in testcases | testgroups
+            g: None for g in testcases | self.testgroups
         }
         # testcase -> float | None
         self.duration: dict[str, float | None] = {g: None for g in testcases}
 
         # const testgroup -> [testgroup | testcase]
-        self.children: dict[str, list[str]] = {node: [] for node in testgroups}
-        for node in testcases | testgroups:
+        self.children: dict[str, list[str]] = {node: [] for node in self.testgroups}
+        for node in testcases | self.testgroups:
             if node != '.':
                 parent = str(Path(node).parent)
                 self.children[parent].append(node)
@@ -208,7 +208,7 @@ class Verdicts:
         """
         return node not in self.children
 
-    def set(self, testcase: str, verdict: str | Verdict, duration: float):
+    def set(self, testcase: str, verdict: str | Verdict, duration: float, override: bool = False):
         """Set the verdict and duration of the given testcase (implying possibly others)
 
         verdict can be given as a Verdict or as a string using either long or
@@ -218,7 +218,7 @@ class Verdicts:
             if isinstance(verdict, str):
                 verdict = from_string(verdict)
             self.duration[testcase] = duration
-            self._set_verdict_for_node(testcase, verdict, duration >= self.timeout)
+            self._set_verdict_for_node(testcase, verdict, duration >= self.timeout, override)
 
     def __getitem__(self, testnode) -> Verdict | None | Literal[False]:
         with self:
@@ -285,13 +285,11 @@ class Verdicts:
                 assert first_error is not False
                 return first_error
 
-    def _set_verdict_for_node(self, testnode: str, verdict: Verdict, timeout: bool):
+    def _set_verdict_for_node(self, testnode: str, verdict: Verdict, timeout: bool, override: bool):
         # This assumes self.lock is already held.
         # Note that `False` verdicts can be overwritten if they were already started before being set to False.
-        if self.verdict[testnode] not in [None, False]:
-            raise ValueError(
-                f"Overwriting verdict of {testnode} to {verdict} (was {self.verdict[testnode]})"
-            )
+        if self.verdict[testnode] not in [None, False] and not override:
+            raise ValueError(f"Overwriting verdict of {testnode} to {verdict} (was {self.verdict[testnode]})")
         self.verdict[testnode] = verdict
         if testnode != '.':
             parent = str(Path(testnode).parent)
@@ -320,7 +318,7 @@ class Verdicts:
             if self.verdict[parent] is None or self.verdict[parent] is False:
                 try:
                     parentverdict = self.aggregate(parent)
-                    self._set_verdict_for_node(parent, parentverdict, timeout)
+                    self._set_verdict_for_node(parent, parentverdict, timeout, override)
                 except ValueError:
                     # parent verdict cannot be determined yet
                     pass
@@ -417,10 +415,7 @@ class VerdictTable:
                 # dont print table if it fills too much of the screen
                 self.print_without_force = len(lines) * len(self.submissions) + 5 < height
                 if not self.print_without_force:
-                    print(
-                        f'{Fore.YELLOW}WARNING: Overview too large for terminal, skipping live updates{Style.RESET_ALL}',
-                        file=sys.stderr,
-                    )
+                    print(f'{Fore.YELLOW}WARNING: Overview too large for terminal, skipping live updates{Style.RESET_ALL}', file=sys.stderr)
                     print(
                         *lines,
                         f'[times {len(self.submissions)}...]',
@@ -473,9 +468,7 @@ class VerdictTable:
         else:
             self._print_table(**kwargs)
 
-    def _print_tree(
-        self, *, force: bool = True, new_lines: int = 1, printed_lengths: list[int] | None = None
-    ):
+    def _print_tree(self, *, force: bool = True, new_lines: int = 1, printed_lengths: list[int] | None = None):
         if printed_lengths is None:
             printed_lengths = []
         if force or self.print_without_force:

@@ -44,9 +44,7 @@ class Run:
     # Return an ExecResult object amended with verdict.
     def run(self, bar, *, interaction=None, submission_args=None):
         if self.problem.interactive:
-            result = interactive.run_interactive_testcase(
-                self, interaction=interaction, submission_args=submission_args
-            )
+            result = interactive.run_interactive_testcase(self, interaction=interaction, submission_args=submission_args)
         else:
             if interaction:
                 assert not interaction.is_relative_to(self.tmpdir)
@@ -86,22 +84,15 @@ class Run:
                 elif result.status == ExecStatus.ERROR:
                     result.verdict = Verdict.RUNTIME_ERROR
                     if config.args.error:
-                        result.err = (
-                            'Exited with code ' + str(result.returncode) + ':\n' + result.err
-                        )
+                        result.err = 'Exited with code ' + str(result.returncode) + ':\n' + result.err
                     else:
                         result.err = 'Exited with code ' + str(result.returncode)
                     break
 
                 result = self._validate_output(bar)
                 if result is None:
-                    bar.error(
-                        f'No output validators found for testcase {self.testcase.name}',
-                        resume=True,
-                    )
-                    result = ExecResult(
-                        None, ExecStatus.REJECTED, 0, False, None, None, Verdict.VALIDATOR_CRASH
-                    )
+                    bar.error(f'No output validators found for testcase {self.testcase.name}', resume=True)
+                    result = ExecResult(None, ExecStatus.REJECTED, 0, False, None, None, Verdict.VALIDATOR_CRASH)
                 elif result.status:
                     result.verdict = Verdict.ACCEPTED
                     validate.sanity_check(self.out_path, bar, strict_whitespace=False)
@@ -256,9 +247,7 @@ class Submission(program.Program):
                     try:
                         expected_verdicts.append(from_string_domjudge(arg))
                     except ValueError:
-                        error(
-                            f'@EXPECTED_RESULTS@: `{arg}` for submission {self.short_path} is not valid'
-                        )
+                        error(f'@EXPECTED_RESULTS@: `{arg}` for submission {self.short_path} is not valid')
                         continue
                 break
             except (UnicodeDecodeError, ValueError):
@@ -276,9 +265,7 @@ class Submission(program.Program):
                 expected_verdicts = [from_string(subdir.upper())]
             else:
                 if len(expected_verdicts) == 0:
-                    error(
-                        f'Submission {self.short_path} must have @EXPECTED_RESULTS@. Defaulting to ACCEPTED.'
-                    )
+                    error(f'Submission {self.short_path} must have @EXPECTED_RESULTS@. Defaulting to ACCEPTED.')
 
         return expected_verdicts or [Verdict.ACCEPTED]
 
@@ -311,9 +298,7 @@ class Submission(program.Program):
 
     # Run this submission on all testcases for the current problem.
     # Returns (OK verdict, printed newline)
-    def run_all_testcases(
-        self, max_submission_name_len: int, verdict_table, *, needs_leading_newline
-    ):
+    def run_all_testcases(self, max_submission_name_len: int, verdict_table, *, needs_leading_newline):
         runs = [Run(self.problem, self, testcase) for testcase in self.problem.testcases()]
         max_testcase_len = max(len(run.name) for run in runs)
         if self.problem.multipass:
@@ -382,9 +367,7 @@ class Submission(program.Program):
                 try:
                     t = f.read_text()
                 except UnicodeDecodeError:
-                    localbar.warn(
-                        f'Validator wrote to {f} but it cannot be parsed as unicode text.'
-                    )
+                    localbar.warn(f'Validator wrote to {f} but it cannot be parsed as unicode text.')
                     continue
                 if not t:
                     continue
@@ -415,6 +398,22 @@ class Submission(program.Program):
         for run in runs:
             p.put(run)
         p.done()
+
+        # Check for PARTIALLY ACCEPTED Verdict (this should be in _set_verdict_for_node but ATM it is here)
+        # Partially accepted is only set if one or more groups is accepted
+        if self.problem.scoring:
+            has_accepted = False
+            has_error = False
+            for group in verdicts.testgroups:
+                if verdicts[group] == Verdict.ACCEPTED:
+                    has_accepted = True
+                elif verdicts[group] == Verdict.PARTIALLY_ACCEPTED:
+                    has_accepted = True
+                    has_error = True
+                else:
+                    has_error = True
+            if has_error and has_accepted:
+                verdicts.set('.', Verdict.PARTIALLY_ACCEPTED, -1, override=True)
 
         self.verdict = verdicts['.']
 

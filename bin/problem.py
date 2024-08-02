@@ -51,9 +51,7 @@ class Problem:
         # TODO: transform this into nice warnings
         assert path.is_dir()
         if not Problem._SHORTNAME_REGEX.match(self.name):
-            warn(
-                f'Problem has a bad shortname: {self.name} does not match {self._SHORTNAME_REGEX_STRING}'
-            )
+            warn(f'Problem has a bad shortname: {self.name} does not match {self._SHORTNAME_REGEX_STRING}')
 
         self.statement_languages = self._determine_statement_languages()
 
