@@ -218,7 +218,9 @@ class Problem:
 
                                 if not flags[k].get('aggregation', False):
                                     bar.error(f'Aggregation flag must be set when using grading for task group {dir.name}', resume=True, print_item=False)
-
+                                else:
+                                    if flags[k]['aggregation'] not in ['min', 'max', 'sum', 'product']:
+                                        bar.error(f'Aggregation is not valid got: {flags[k]['aggregation']} in task group {dir.name}')
                                 if dir.name != 'secret':
                                     if not flags[k].get('score', False):
                                         bar.warn(f"Score not set for task group {dir.name}", print_item=False)
