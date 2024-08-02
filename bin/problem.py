@@ -791,7 +791,7 @@ class Problem:
                 if problem.multipass:
                     msg += ' multi-pass'
                 if problem.scoring:
-                    msh += ' scoring'
+                    msg += ' scoring'
                 log(f'Not running answer_validators for{msg} problems.')
             return True
 
