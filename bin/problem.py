@@ -211,13 +211,21 @@ class Problem:
                                         val.name for val in p.validators(validate.InputValidator)
                                     )
                                     for name in set(flags[k]) - input_validator_names:
-                                        bar.warn(
-                                            f'Unknown input validator {name}; expected {input_validator_names}',
-                                            print_item=False,
-                                        )
+                                        bar.warn(f'Unknown input validator {name}; expected {input_validator_names}', print_item=False)
                             case 'grading':
-                                if not instance(flags[k], (dict)):  
-                                    bar.error("grading flag must be a map", resume=True, print_item=False)
+                                if not isinstance(flags[k], (dict)):
+                                    bar.error("Grading flag must be a map", resume=True, print_item=False)
+
+                                if not flags[k].get('aggregation', False):
+                                    bar.error(f'Aggregation flag must be set when using grading for task group {dir.name}', resume=True, print_item=False)
+
+                                if dir.name != 'secret':
+                                    if not flags[k].get('score', False):
+                                        bar.warn(f"Score not set for task group {dir.name}", print_item=False)
+                                    else:
+                                        if not isinstance(flags[k]['score'], int):
+                                                    bar.error(f'Score must be an integer for task group {dir.name}', resume=True, print_item=False)
+
                             case 'run_samples':
                                 bar.warn(f'{k} not implemented in BAPCtools', print_item=False)
                             case _:
