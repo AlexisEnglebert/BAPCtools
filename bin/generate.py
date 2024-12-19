@@ -619,7 +619,7 @@ class TestcaseRule(Rule):
     def link(t, problem, generator_config, bar, dst):
         src_dir = problem.path / 'data' / t.path.parent
         src = src_dir / (t.name + '.in')
-
+        print("SOURCE DIR :", src_dir)
         for ext in config.KNOWN_DATA_EXTENSIONS:
             source = src.with_suffix(ext)
             target = dst.with_suffix(ext)

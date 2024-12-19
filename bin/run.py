@@ -413,7 +413,7 @@ class Submission(program.Program):
                 else:
                     has_error = True
             if has_error and has_accepted:
-                verdicts.set('.', Verdict.PARTIALLY_ACCEPTED, -1, override=True)
+                verdicts.set('.', Verdict.PARTIALLY_ACCEPTED, -1, override=True) 
 
         self.verdict = verdicts['.']
 

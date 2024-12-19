@@ -190,6 +190,9 @@ class Problem:
                     p._testdata_yamls[f] = flags = read_yaml(f, plain=True)
 
                     # verify testdata.yaml
+                    has_name = False
+                    has_grading = False
+
                     for k in flags:
                         match k:
                             case 'output_validator_flags':
@@ -213,6 +216,7 @@ class Problem:
                                     for name in set(flags[k]) - input_validator_names:
                                         bar.warn(f'Unknown input validator {name}; expected {input_validator_names}', print_item=False)
                             case 'grading':
+                                has_grading = True
                                 if not isinstance(flags[k], (dict)):
                                     bar.error("Grading flag must be a map", resume=True, print_item=False)
 
@@ -221,18 +225,25 @@ class Problem:
                                 else:
                                     if flags[k]['aggregation'] not in ['min', 'max', 'sum', 'product']:
                                         bar.error(f'Aggregation is not valid got: {flags[k]['aggregation']} in task group {dir.name}')
-                                if dir.name != 'secret':
-                                    if not flags[k].get('score', False):
-                                        bar.warn(f"Score not set for task group {dir.name}", print_item=False)
-                                    else:
-                                        if not isinstance(flags[k]['score'], int):
-                                                    bar.error(f'Score must be an integer for task group {dir.name}', resume=True, print_item=False)
+                                if not flags[k].get('score', False):
+                                    bar.error(f"Score not set for task group {dir.name}", print_item=False)  
+                                else:
+                                    if not isinstance(flags[k]['score'], int):
+                                        bar.error(f'Score must be an integer for task group {dir.name}', resume=True, print_item=False)
 
                             case 'run_samples':
                                 bar.warn(f'{k} not implemented in BAPCtools', print_item=False)
+                            case 'name':
+                                has_name = True
                             case _:
                                 path = f.relative_to(p.path / 'data')
                                 bar.warn(f'Unknown key "{k}" in {path}', print_item=False)
+
+                    if not has_name:
+                        bar.error(f"Name not set for task group {dir.name}", print_item=False)
+                    if not has_grading:
+                        bar.error(f"Grading not set for task group {dir.name}", print_item=False)
+
             # Do not go above the data directory.
             if dir == p.path / 'data':
                 break
